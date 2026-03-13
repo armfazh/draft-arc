@@ -41,9 +41,9 @@ class PresentationState(object):
         # This step mutates the state by incrementing next_nonce
         self.next_nonce += 1
 
-        a = G.ScalarField.random(rng)
-        r = G.ScalarField.random(rng)
-        z = G.ScalarField.random(rng)
+        a = rng.random_scalar()
+        r = rng.random_scalar()
+        z = rng.random_scalar()
 
         U = G.scalar_mult(a, self.credential.U)
         U_prime = G.scalar_mult(a, self.credential.U_prime)
@@ -51,7 +51,7 @@ class PresentationState(object):
         m1_commit = G.scalar_mult(self.credential.m1, U) + G.scalar_mult(z, GenH)
 
         # Create Pedersen commitment to the nonce
-        nonce_blinding = G.ScalarField.random(rng)
+        nonce_blinding = rng.random_scalar()
         nonce_commit = G.scalar_mult(nonce, GenG) + G.scalar_mult(nonce_blinding, GenH)
 
         generator_T = hash_to_group(self.presentation_context, to_bytes("Tag"))
@@ -68,7 +68,7 @@ class PresentationState(object):
         vectors["U"] = to_hex(G.serialize([U]))
         vectors["U_prime_commit"] = to_hex(G.serialize([U_prime_commit]))
         vectors["m1_commit"] = to_hex(G.serialize([m1_commit]))
-        vectors["nonce"] = hex(nonce)
+        vectors["nonce"] = f"{ZZ(nonce):02x}"
         vectors["nonce_blinding"] = to_hex(G.ScalarField.serialize([nonce_blinding]))
         vectors["nonce_commit"] = to_hex(G.serialize([nonce_commit]))
         vectors["tag"] = to_hex(G.serialize([tag]))
@@ -115,7 +115,7 @@ class CredentialResponse(object):
 
 class ClientPrivateKey(object):
     def __init__(self, rng, private_info):
-        self.sk = G.ScalarField.random(rng)
+        self.sk = rng.random_scalar()
         self.private_attr = hash_to_scalar(private_info, to_bytes("private"))
         self.pk = G.scalar_mult(self.sk, GenG)
 
@@ -127,10 +127,10 @@ class Client(object):
         self.rng = rng
 
     def request(self, request_context, vectors):
-        m1 = G.ScalarField.random(self.rng)
+        m1 = self.rng.random_scalar()
         m2 = G.ScalarField.field(hash_to_scalar(request_context, to_bytes("requestContext")))
-        r1 = G.ScalarField.random(self.rng)
-        r2 = G.ScalarField.random(self.rng)
+        r1 = self.rng.random_scalar()
+        r2 = self.rng.random_scalar()
 
         m1_enc = G.scalar_mult(m1, GenG) + G.scalar_mult(r1, GenH)
         m2_enc = G.scalar_mult(m2, GenG) + G.scalar_mult(r2, GenH)
@@ -169,10 +169,10 @@ class ServerPrivateKey(object):
 class Server(object):
     @classmethod
     def keygen(cls, rng, vectors):
-        x0 = G.ScalarField.random(rng)
-        x1 = G.ScalarField.random(rng)
-        x2 = G.ScalarField.random(rng)
-        xb = G.ScalarField.random(rng)
+        x0 = rng.random_scalar()
+        x1 = rng.random_scalar()
+        x2 = rng.random_scalar()
+        xb = rng.random_scalar()
         X0 = G.scalar_mult(x0, GenG) + G.scalar_mult(xb, GenH)
         X1 = G.scalar_mult(x1, GenH)
         X2 = G.scalar_mult(x2, GenH)
@@ -194,7 +194,7 @@ class Server(object):
         if CredentialRequestProof.verify(blinded_request) == False:
             raise Exception("request proof verification failed")
 
-        b = G.ScalarField.random(rng)
+        b = rng.random_scalar()
         U = G.scalar_mult(b, GenG)
 
         enc_U_prime = G.scalar_mult(b, (public_key.X0 + G.scalar_mult(private_key.x1, blinded_request.m1_enc) + G.scalar_mult(private_key.x2, blinded_request.m2_enc)))
@@ -203,7 +203,10 @@ class Server(object):
         X2_aux = G.scalar_mult(b, public_key.X2)
         H_aux =  G.scalar_mult(b, GenH)
 
-        response_proof = CredentialResponseProof.prove(private_key, public_key, blinded_request, b, U, enc_U_prime, X0_aux, X1_aux, X2_aux, H_aux, rng, vectors)
+        response_proof = CredentialResponseProof.prove(
+            private_key, public_key, blinded_request,
+            b, U, enc_U_prime, X0_aux, X1_aux, X2_aux,
+            H_aux, rng, vectors)
         response = BlindedResponse(U, enc_U_prime, X0_aux, X1_aux, X2_aux, H_aux, response_proof)
 
         vectors["b"] = to_hex(G.ScalarField.serialize([b]))
