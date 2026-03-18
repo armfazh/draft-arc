@@ -20,10 +20,10 @@ class CredentialRequestProof(object):
         statement = LinearRelation(G)
 
         # Allocate scalar variables (4 scalars)
-        [m1_var, r1_var, m2_var, r2_var] = statement.allocate_scalars(4)
+        [m1_var, m2_var, r1_var, r2_var] = statement.allocate_scalars(4)
 
         # Build witness array
-        witness = [m1, r1, m2, r2]
+        witness = [m1, m2, r1, r2]
 
         # Allocate and set element variables (4 elements)
         [gen_G_var, gen_H_var, m1_enc_var, m2_enc_var] = statement.allocate_elements(4)
@@ -54,7 +54,7 @@ class CredentialRequestProof(object):
         statement = LinearRelation(G)
 
         # Allocate scalar variables (4 scalars)
-        [m1_var, r1_var, m2_var, r2_var] = statement.allocate_scalars(4)
+        [m1_var, m2_var, r1_var, r2_var] = statement.allocate_scalars(4)
 
         # Allocate and set element variables (4 elements)
         [gen_G_var, gen_H_var, m1_enc_var, m2_enc_var] = statement.allocate_elements(4)
@@ -85,12 +85,12 @@ class CredentialResponseProof(object):
         statement = LinearRelation(G)
 
         # Allocate scalar variables (7 scalars)
-        [x0_var, xb_var, x1_var, x2_var, b_var, t1_var, t2_var] = statement.allocate_scalars(7)
+        [x0_var, x1_var, x2_var, xb_var, b_var, t1_var, t2_var] = statement.allocate_scalars(7)
 
         # Build witness array
         t1 = b * private_key.x1
         t2 = b * private_key.x2
-        witness = [private_key.x0, private_key.xb, private_key.x1, private_key.x2, b, t1, t2]
+        witness = [private_key.x0, private_key.x1, private_key.x2, private_key.xb, b, t1, t2]
 
         # Allocate and set element variables (13 elements)
         [gen_G_var, gen_H_var, m1_enc_var, m2_enc_var, U_var, enc_U_prime_var,
@@ -159,7 +159,7 @@ class CredentialResponseProof(object):
         statement = LinearRelation(G)
 
         # Allocate scalar variables (7 scalars)
-        [x0_var, xb_var, x1_var, x2_var, b_var, t1_var, t2_var] = statement.allocate_scalars(7)
+        [x0_var, x1_var, x2_var, xb_var, b_var, t1_var, t2_var] = statement.allocate_scalars(7)
 
         # Allocate and set element variables (13 elements)
         [gen_G_var, gen_H_var, m1_enc_var, m2_enc_var, U_var, enc_U_prime_var,
